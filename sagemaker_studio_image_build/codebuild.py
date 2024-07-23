@@ -117,11 +117,18 @@ class TempCodeBuildProject:
 
     def _create_repo_if_required(self):
         client = self.session.client("ecr")
+
         try:
-            client.create_repository(repositoryName=self.repo_name)
-            print(f"Created ECR repository {self.repo_name}")
-        except client.exceptions.RepositoryAlreadyExistsException as e:
-            pass
+            client.describe_repositories(repositoryNames=[self.repo_name])
+        except client.exceptions.RepositoryNotFoundException as e:
+            print(e)
+            print(f"Attempting to create ECR repository {self.repo_name}")
+            # AWS provided code from original version
+            try:
+                client.create_repository(repositoryName=self.repo_name)
+                print(f"Created ECR repository {self.repo_name}")
+            except client.exceptions.RepositoryAlreadyExistsException as e:
+                pass
 
     def _get_image_uri(self):
         client = self.session.client("ecr")
